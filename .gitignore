@@ -1,3 +1,5 @@
 ﻿data/
 models/
 reports/figures/
+__pycache__/
+*.pyc
