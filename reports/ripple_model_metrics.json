@@ -1,0 +1,182 @@
+{
+  "ripple_classifier": {
+    "threshold": 0.66,
+    "train": {
+      "auc": 0.8140690105682162,
+      "average_precision": 0.3476163112134658,
+      "f1": 0.36878048780487804
+    },
+    "test": {
+      "auc": 0.7651505530458341,
+      "average_precision": 0.225773596835836,
+      "precision": 0.22111553784860558,
+      "recall": 0.3894736842105263,
+      "f1": 0.2820838627700127,
+      "tn": 2510,
+      "fp": 391,
+      "fn": 174,
+      "tp": 111
+    }
+  },
+  "severe_classifier": {
+    "threshold": 0.6799999999999999,
+    "train": {
+      "auc": 0.8557305822522348,
+      "average_precision": 0.3179732368911817,
+      "f1": 0.3467583497053045
+    },
+    "test": {
+      "auc": 0.765648894327939,
+      "average_precision": 0.1328295401404682,
+      "precision": 0.13307984790874525,
+      "recall": 0.41916167664670656,
+      "f1": 0.20202020202020202,
+      "tn": 2563,
+      "fp": 456,
+      "fn": 97,
+      "tp": 70
+    }
+  },
+  "positive_delay_regression": {
+    "train": {
+      "mae": 9.954575128849697,
+      "rmse": 45.30609440820197,
+      "r2": 0.5346143848918177
+    },
+    "test": {
+      "mae": 21.361405093432314,
+      "rmse": 40.37711546298648,
+      "r2": -0.1426166294594371
+    }
+  },
+  "delay_prediction_threshold": {
+    "train": {
+      "mae": 3.57809143367716,
+      "rmse": 20.63886220108558,
+      "r2": 0.10816043882435089
+    },
+    "test": {
+      "mae": 6.422637900121753,
+      "rmse": 18.336859213936545,
+      "r2": -0.9184451080111993
+    }
+  },
+  "delay_prediction_expected": {
+    "train": {
+      "mae": 7.304783698061765,
+      "rmse": 18.590119970205773,
+      "r2": 0.27643156074658404
+    },
+    "test": {
+      "mae": 11.356805109605066,
+      "rmse": 17.727216960219874,
+      "r2": -0.7930012657307657
+    }
+  },
+  "feature_importance": {
+    "ripple_classifier": {
+      "station_key": 21.74452355777754,
+      "station_prev_events_mean": 11.487532741059212,
+      "minute_of_day": 10.532824440861466,
+      "hour": 8.614161302492029,
+      "station_prev_linger_mean": 8.058479546538463,
+      "code_prev_delay_mean": 3.6408503221037987,
+      "subway_delay": 3.462430991086135,
+      "day_name": 2.823657068302433,
+      "station_prev_delay_mean": 2.793805871122282,
+      "station_prev_delay_total": 2.7774562170595223,
+      "subway_code": 2.3937177971171195,
+      "recent_station_events_3": 2.377828343085568,
+      "weekofyear": 2.3391112328429196,
+      "line_prev_incidents": 2.2572849103201773,
+      "global_prev_delay": 2.0215438104078856,
+      "subway_line": 1.9698771804719217,
+      "recent_station_delay_3": 1.6619886505002,
+      "is_weekend": 1.4539677764607295,
+      "quarter": 1.4474807225596602,
+      "code_prev_events_mean": 1.3828774511015365,
+      "line_prev_delay_mean": 1.303300832778182,
+      "month": 1.2791088432926077,
+      "code_prev_incidents": 1.128547535914498,
+      "station_prev_incidents": 1.0476428547441368
+    },
+    "severe_classifier": {
+      "station_key": 10.526481525687288,
+      "station_prev_linger_mean": 9.43658777657887,
+      "station_prev_events_mean": 8.358215530852323,
+      "station_prev_delay_mean": 6.406029708468067,
+      "minute_of_day": 5.837535937904241,
+      "line_prev_delay_mean": 4.989510500039176,
+      "station_prev_delay_total": 4.764437044600838,
+      "subway_code": 4.55202578051185,
+      "code_prev_incidents": 4.459403800806148,
+      "line_prev_incidents": 4.319055084531477,
+      "hour": 4.269781906102977,
+      "station_prev_incidents": 4.053155342457148,
+      "subway_line": 3.5112439772943933,
+      "code_prev_events_mean": 3.4786017923860593,
+      "is_weekend": 3.2223032169235832,
+      "day_name": 3.088023143320038,
+      "code_prev_delay_mean": 2.6448077838689623,
+      "weekofyear": 2.4875112661048266,
+      "subway_delay": 2.4053348844977394,
+      "month": 1.8661999614487772,
+      "recent_station_delay_3": 1.6760210897169414,
+      "global_prev_delay": 1.5638558940957155,
+      "recent_station_events_3": 1.1890650455164873,
+      "quarter": 0.8948120062860455
+    },
+    "positive_delay_regressor": {
+      "station_key": 12.962497569966102,
+      "subway_code": 8.614974352399317,
+      "day_name": 7.982140083424424,
+      "subway_line": 6.01272015245179,
+      "minute_of_day": 5.602336343272758,
+      "code_prev_delay_mean": 5.061466125260644,
+      "station_prev_delay_mean": 5.032643590860304,
+      "recent_station_delay_3": 4.677231825628078,
+      "code_prev_incidents": 4.588409293228053,
+      "global_prev_delay": 4.514676304197136,
+      "line_prev_delay_mean": 4.215356984364216,
+      "code_prev_events_mean": 4.090415755134975,
+      "station_prev_events_mean": 4.028376352153105,
+      "line_prev_incidents": 3.680582113847011,
+      "station_prev_linger_mean": 3.380634874476611,
+      "station_prev_incidents": 3.198775482297014,
+      "subway_delay": 2.9556807693853537,
+      "station_prev_delay_total": 2.4465185308669937,
+      "hour": 1.9064025120431394,
+      "recent_station_events_3": 1.8103799618690828,
+      "month": 1.1495984457902326,
+      "weekofyear": 0.9674567687301321,
+      "is_weekend": 0.7955465112336005,
+      "quarter": 0.32517929711995314
+    }
+  },
+  "shap_summary_positive_regressor": {
+    "line_prev_incidents": 0.3377953350337235,
+    "station_key": 0.10843209065973727,
+    "station_prev_delay_mean": 0.06661989057546584,
+    "weekofyear": 0.05584544205789154,
+    "subway_code": 0.05536750963158684,
+    "code_prev_incidents": 0.048849930971826425,
+    "station_prev_events_mean": 0.04448295770979306,
+    "day_name": 0.040634441420349936,
+    "minute_of_day": 0.03987112528172189,
+    "subway_line": 0.03975223288574546,
+    "station_prev_linger_mean": 0.03745886392452921,
+    "recent_station_delay_3": 0.035774404467306606,
+    "code_prev_delay_mean": 0.03309671259782086,
+    "station_prev_delay_total": 0.026629303971330977,
+    "line_prev_delay_mean": 0.02619717001162949,
+    "global_prev_delay": 0.023970017829130955,
+    "code_prev_events_mean": 0.023438259537991307,
+    "station_prev_incidents": 0.021627910809472888,
+    "hour": 0.015814025590487453,
+    "quarter": 0.014609896110938256,
+    "month": 0.013603730768060337,
+    "subway_delay": 0.012892398749414067,
+    "recent_station_events_3": 0.009356046322941515,
+    "is_weekend": 0.009143725380003246
+  }
+}
