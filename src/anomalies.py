@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
+import calendar
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import IsolationForest
@@ -55,7 +56,7 @@ df_anom = df_main[df_main["is_anomaly"]].copy()
 print(f"\n✅ Total Anomalies Detected: {len(df_anom)}")
 
 
-# # AIRLINE ANOMALIES PER MONTH
+# Airline anomalies per month
 airline_monthly = (
     df_anom.groupby(["month", "op_unique_carrier"])
     .size()
@@ -71,13 +72,15 @@ for airline in airline_monthly["op_unique_carrier"].unique():
 plt.title("Monthly Flight Anomalies by Airline")
 plt.xlabel("Month")
 plt.ylabel("Anomaly Count")
-plt.xticks(range(1,13))
+plt.xticks(
+    ticks=range(1,13),
+    labels=[calendar.month_abbr[m] for m in range(1,13)]
+)
 plt.legend(ncol=4, fontsize=7)
 plt.tight_layout()
 plt.show()
 
-
-# ROOT CAUSE CLASSIFICATION OF ANOMALIES
+# Root cause of anomalies
 
 # Calculate speed for categorization
 df_anom["speed_mph"] = 60 * df_anom["distance"] / df_anom["air_time"]
@@ -146,7 +149,10 @@ for origin in origin_monthly["origin"].unique():
 plt.title(f"Monthly Anomalies by Departure Airport (Top {TOP_ORIGINS})")
 plt.xlabel("Month")
 plt.ylabel("Anomaly Count")
-plt.xticks(range(1,13))
+plt.xticks(
+    ticks=range(1,13),
+    labels=[calendar.month_abbr[m] for m in range(1,13)]
+)
 plt.legend(fontsize=7, ncol=2)
 plt.tight_layout()
 plt.show()
@@ -157,7 +163,7 @@ df_valid = df[
     (df["air_time"] > 0)
 ].copy()
 
-# REALISTIC LONGEST TRAVEL PATH - ONE ITINERARY
+# Longest possible travel path same day.
 
 # Ensure valid distance/time rows
 df_valid = df[
@@ -166,42 +172,3 @@ df_valid = df[
 ].copy()
 
 df_valid["fl_date"] = pd.to_datetime(df_valid["fl_date"])
-
-
-# LONGEST REALISTIC ITINERARY — SAME AIRLINE Flights exist on same day & carrier
-
-airline_daily_paths = (
-    df_valid
-        .groupby(["op_unique_carrier", "fl_date"])["distance"]
-        .sum()
-        .reset_index()
-)
-
-max_airline_itinerary = (
-    airline_daily_paths
-        .groupby("op_unique_carrier")["distance"]
-        .max()
-        .sort_values(ascending=False)
-        .reset_index()
-)
-
-top_airlines = max_airline_itinerary.head(10)
-top_airlines["distance_kmiles"] = top_airlines["distance"] / 1000
-
-
-print("\n LONGEST REALISTIC TRAVEL PATHS – SAME AIRLINE")
-print(top_airlines)
-
-# Plot
-plt.figure(figsize=(10,6))
-sns.barplot(
-    data=top_airlines,
-    x="distance_kmiles",
-    y="op_unique_carrier"
-)
-
-plt.title("Top 10 Longest Single-Day Travel Paths — Same Airline")
-plt.xlabel("Distance Traveled (Thousands of Miles)")
-plt.ylabel("Airline")
-plt.tight_layout()
-plt.show()
