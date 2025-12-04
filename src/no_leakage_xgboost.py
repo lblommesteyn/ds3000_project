@@ -1,7 +1,4 @@
 import numpy as np
-import pandas as pd
-from pathlib import Path
-
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.compose import ColumnTransformer
@@ -9,37 +6,15 @@ from sklearn.pipeline import Pipeline
 from sklearn.metrics import roc_auc_score, classification_report
 from xgboost import XGBClassifier
 
-from data_prep import load_df
+from data_prep import load_df, add_dep_hour, add_delay_label, filter_operated_flights, add_predeparture_features, sample_df
 
 df = load_df()
+df = add_dep_hour(df)
+df = add_delay_label(df)
+df = filter_operated_flights(df)
+df = add_predeparture_features(df)
 
-def hhmm_to_minutes(x):
-    if pd.isna(x):
-        return np.nan
-    x = int(x)
-    return (x // 100) * 60 + (x % 100)
-
-if "dep_hour" not in df.columns:
-    df["crs_dep_time_min"] = df["crs_dep_time"].map(hhmm_to_minutes).astype("float32")
-    df["dep_hour"] = (df["crs_dep_time_min"] // 60).astype("Int8")
-
-if "is_delayed_15" not in df.columns:
-    df["arr_delay"] = pd.to_numeric(df["arr_delay"], errors = "coerce").astype("float32")
-    df["is_delayed_15"] = (df["arr_delay"] > 15).astype("Int8")
-
-# drop cancelled/diverted
-df_model = df[(df["cancelled"] != 1) & (df["diverted"] != 1)].copy()
-
-# pre-departure features
-df_model["is_weekend"] = (df_model["day_of_week"] >= 5).astype("int8")
-df_model["is_peak_summer"] = df_model["month"].isin([6, 7, 8]).astype("int8")
-
-df_model["distance_bucket"] = pd.cut(
-    df_model["distance"],
-    bins = [0, 300, 800, 1500, 3000, 6000],
-    labels = [0, 1, 2, 3, 4],
-    include_lowest = True
-).astype("int8")
+df_model = df.copy()
 
 # only use valid features
 feature_cols = [
@@ -57,10 +32,7 @@ feature_cols = [
 target_col = "is_delayed_15"
 
 model_df_fe_clean = df_model[feature_cols + [target_col]].dropna()
-
-# sample for speed (400k rows)
-n_sample = min(400_000, len(model_df_fe_clean))
-model_df_fe_clean = model_df_fe_clean.sample(n = n_sample, random_state = 42)
+model_df_fe_clean = sample_df(model_df_fe_clean)
 
 X = model_df_fe_clean[feature_cols]
 y = model_df_fe_clean[target_col]

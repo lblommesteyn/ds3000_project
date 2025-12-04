@@ -1,7 +1,3 @@
-# import data and view basic statistics
-import pandas as pd
-from pathlib import Path
-import numpy as np
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
@@ -11,29 +7,17 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import roc_auc_score, classification_report
 from xgboost import XGBClassifier
 
-from data_prep import load_df
+from data_prep import load_df, add_dep_hour, add_delay_label, hhmm_to_minutes
 
+# basic statistics
 df = load_df()
 df.head()
 df.info()
 
-# average delay stats
-def hhmm_to_minutes(x):
-    if pd.isna(x): return np.nan
-    x = int(x)
-    return (x // 100) * 60 + (x % 100)
-
-time_cols = ["crs_dep_time", "dep_time", "crs_arr_time", "arr_time"]
-for col in time_cols:
-    df[col + "_min"] = df[col].map(hhmm_to_minutes).astype("float32")
-
-df["dep_hour"] = (df["crs_dep_time_min"] // 60).astype("Int8")
-df["arr_hour"] = (df["crs_arr_time_min"] // 60).astype("Int8")
+df = add_dep_hour(df)
+df = add_delay_label(df)
 df["day_of_week"] = df["day_of_week"].astype("Int8")
-
-df["arr_delay"] = pd.to_numeric(df["arr_delay"], errors="coerce")
-df["is_delayed_15"] = (df["arr_delay"] > 15).astype("Int8")
-# df = df[(df["cancelled"] != 1) & (df["diverted"] != 1)]
+df["arr_hour"] = (df["crs_arr_time"].map(hhmm_to_minutes) // 60).astype("Int8")
 
 print("Avg Arrival Delay:", df["arr_delay"].mean())
 print("Percent Delayed >15:", df["is_delayed_15"].mean())
