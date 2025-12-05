@@ -11,13 +11,20 @@ from xgboost import XGBClassifier
 from data_prep import load_df, add_dep_hour, add_delay_label, hhmm_to_minutes
 
 # basic statistics
+# Load the dataset using our custom loader which handles dtype optimization
+# This ensures we don't run out of memory with the large CSV
 df = load_df()
 df.head()
 df.info()
 
+# Feature Engineering:
+# 1. Extract the departure hour to capture daily cycles (morning vs evening delays)
 df = add_dep_hour(df)
+# 2. Create the binary target variable (>15 min delay is the industry standard)
 df = add_delay_label(df)
+# 3. Cast day_of_week to Int8 for memory efficiency
 df["day_of_week"] = df["day_of_week"].astype("Int8")
+# 4. Calculate arrival hour from scheduled arrival time
 df["arr_hour"] = (df["crs_arr_time"].map(hhmm_to_minutes) // 60).astype("Int8")
 
 print("Avg Arrival Delay:", df["arr_delay"].mean())
@@ -25,6 +32,8 @@ print("Percent Delayed >15:", df["is_delayed_15"].mean())
 print("Number of Flights:", len(df))
 
 # probability of delays by time
+# EDA: Analyze how delay probability changes throughout the day
+# We expect a "snowball effect" where delays accumulate later in the day
 delay_by_hour = df.groupby("dep_hour")["is_delayed_15"].mean()
 
 plt.figure(figsize = (10,4))
@@ -37,6 +46,8 @@ os.makedirs("plots/main", exist_ok=True)
 plt.savefig("plots/main/delay_by_hour.png")
 
 # top delays by airport
+# Identify the airports with the highest average delays
+# This helps us understand if specific hubs are bottlenecks
 top_airports = (
     df.groupby("origin")["arr_delay"]
       .mean()
@@ -46,6 +57,8 @@ top_airports = (
 
 print(top_airports)
 
+# Create a heatmap matrix of Delays: Origin vs Month
+# This visualizes seasonality (e.g., winter storms vs summer travel) across different regions
 pivot = (
     df.groupby(["origin", "month"])["arr_delay"]
       .mean()
@@ -64,6 +77,9 @@ plt.title("Monthly Delay Patterns Across Major Airports")
 plt.savefig("plots/main/delay_by_airport.png")
 
 # logistic regression model
+# Prepare data for modeling
+# We drop rows with missing values to ensure scikit-learn compatibility
+# Selecting a subset of features that are known before the flight departs
 model_df = df[
     ["dep_hour","month","day_of_week","distance","origin","dest","op_unique_carrier","is_delayed_15"]
 ].dropna()
@@ -71,6 +87,10 @@ model_df = df[
 X = model_df.drop("is_delayed_15", axis = 1)
 y = model_df["is_delayed_15"]
 
+# Preprocessing Pipeline:
+# - OneHotEncoder for categorical variables (Origin, Dest, Carrier) to handle non-numeric data
+# - Passthrough for numeric variables
+# We use handle_unknown='ignore' to avoid crashing on unseen categories in test set
 preprocess = ColumnTransformer([
     ("categorical", OneHotEncoder(handle_unknown = "ignore"), ["origin","dest","op_unique_carrier"]),
     ("num", "passthrough", ["dep_hour","month","day_of_week","distance"])
@@ -93,14 +113,14 @@ print(classification_report(y_test,(preds > 0.5).astype(int)))
 xgb = Pipeline([
     ("prep", preprocess),
     ("model", XGBClassifier(
-        tree_method = "hist",
-        n_estimators = 600,
-        max_depth = 8,
-        learning_rate = 0.05,
-        subsample = 0.8,
-        colsample_bytree = 0.8,
-        eval_metric = "auc",
-        n_jobs = -1
+        tree_method = "hist",       # Use histogram-based algorithm for speed on large data
+        n_estimators = 600,         # Number of trees
+        max_depth = 8,              # Maximum depth of each tree (controls complexity)
+        learning_rate = 0.05,       # Step size shrinkage to prevent overfitting
+        subsample = 0.8,            # Train on 80% of rows per tree
+        colsample_bytree = 0.8,     # Train on 80% of features per tree
+        eval_metric = "auc",        # Optimize for Area Under ROC Curve
+        n_jobs = -1                 # Use all available CPU cores
     ))
 ])
 

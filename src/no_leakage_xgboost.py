@@ -8,15 +8,21 @@ from xgboost import XGBClassifier
 
 from data_prep import load_df, add_dep_hour, add_delay_label, filter_operated_flights, add_predeparture_features, sample_df
 
+# Load and prepare data
+# We use a centralized data_prep module to ensure consistency across scripts
 df = load_df()
 df = add_dep_hour(df)
 df = add_delay_label(df)
-df = filter_operated_flights(df)
+df = filter_operated_flights(df) # Remove cancelled flights as they are not relevant for delay prediction
 df = add_predeparture_features(df)
 
 df_model = df.copy()
 
 # only use valid features
+# CRITICAL: Feature Selection
+# We explicitly select ONLY features that are available BEFORE the flight takes off.
+# Including features like 'taxi_out' or 'air_time' would cause Data Leakage, 
+# giving the model information it wouldn't have in a real-world prediction scenario.
 feature_cols = [
     "dep_hour",
     "month",
@@ -31,7 +37,11 @@ feature_cols = [
 
 target_col = "is_delayed_15"
 
+# Filter dataset to only include selected features and target
 model_df_fe_clean = df_model[feature_cols + [target_col]].dropna()
+
+# Downsample the dataset for faster training during development
+# In production, we would use the full dataset or a larger sample
 model_df_fe_clean = sample_df(model_df_fe_clean)
 
 X = model_df_fe_clean[feature_cols]
@@ -64,6 +74,10 @@ preprocess_clean = ColumnTransformer(
     ]
 )
 
+# Handle Class Imbalance
+# Flight delays are rare (approx 20% of flights).
+# We calculate scale_pos_weight to tell XGBoost to pay more attention to the minority class (delays).
+# Formula: number of negative samples / number of positive samples
 neg, pos = np.bincount(y_train)
 scale_pos_weight = neg / pos
 
@@ -80,7 +94,7 @@ xgb_clean = Pipeline(
             eval_metric = "auc",
             n_jobs = -1,
             random_state = 42,
-            scale_pos_weight = scale_pos_weight,
+            scale_pos_weight = scale_pos_weight, # Apply the calculated weight
         ))
     ]
 )
