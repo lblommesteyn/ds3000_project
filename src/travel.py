@@ -32,6 +32,127 @@ df_valid = df[
 
 df_valid["fl_date"] = pd.to_datetime(df_valid["fl_date"])
 
+
+# Delay reason
+DELAY_COLS = [
+    "carrier_delay",
+    "weather_delay",
+    "nas_delay",
+    "security_delay",
+    "late_aircraft_delay"
+]
+
+# Remove rows with no recorded delay causes
+delay_reasons_df = df.dropna(subset=DELAY_COLS, how="all").copy()
+
+# Build total delay cause values
+for col in DELAY_COLS:
+    delay_reasons_df[col] = delay_reasons_df[col].fillna(0) / 60.0
+
+delay_totals = (
+    delay_reasons_df[DELAY_COLS]
+        .sum()
+        .reset_index()
+)
+
+delay_totals.columns = ["delay_cause", "total_minutes"]
+
+# Map names to readable labels
+CAUSE_NAMES = {
+    "carrier_delay": "Airline Operations",
+    "weather_delay": "Weather",
+    "nas_delay": "Airport / ATC",
+    "security_delay": "Security",
+    "late_aircraft_delay": "Late Aircraft"
+}
+
+delay_totals["delay_cause"] = delay_totals["delay_cause"].map(CAUSE_NAMES)
+
+
+total_minutes = delay_totals["total_minutes"].sum()
+delay_totals["percent_of_total"] = (100 * delay_totals["total_minutes"] / total_minutes)
+
+print("\n==== TOTAL DELAY BY CAUSE ====")
+print(delay_totals.sort_values("total_minutes", ascending=False))
+
+
+plt.figure(figsize=(10,6))
+
+sns.barplot(
+    x="total_minutes",
+    y="delay_cause",
+    data=delay_totals.sort_values("total_minutes", ascending=False)
+)
+
+plt.xlabel("Total Delay Hours")
+plt.ylabel("Cause")
+plt.title("Total Delay Impact by Root Cause")
+plt.tight_layout()
+plt.show()
+
+# Cause of delay
+delay_reasons_df["month"] = pd.to_datetime(delay_reasons_df["fl_date"]).dt.month
+
+monthly_delays = (
+    delay_reasons_df
+        .groupby("month")[DELAY_COLS]
+        .sum()
+)
+
+monthly_delays = monthly_delays.rename(columns=CAUSE_NAMES)
+
+# Plot monthly trends
+plt.figure(figsize=(12,6))
+
+for cause in monthly_delays.columns:
+    plt.plot(monthly_delays.index, monthly_delays[cause], label=cause)
+
+plt.title("Monthly Delay Hours by Cause")
+plt.xlabel("Month")
+plt.ylabel("Total Delay Hours")
+plt.legend()
+plt.xticks(range(1,13))
+plt.tight_layout()
+plt.show()
+
+
+# Airline delay 
+airline_delay = (
+    delay_reasons_df
+        .groupby("op_unique_carrier")[DELAY_COLS]
+        .sum()
+        .rename(columns=CAUSE_NAMES)
+)
+
+print("\n==== AIRLINE DELAY CAUSE TOTALS (TOP LINES) ====")
+print(airline_delay.head())
+
+
+plt.figure(figsize=(14,7))
+
+airline_delay.plot(kind="bar", stacked=True)
+
+plt.title("Delay Cause Comparison by Airline")
+plt.ylabel("Total Delay Hours")
+plt.xlabel("Airline")
+plt.tight_layout()
+plt.show()
+
+airline_pct = airline_delay.div(
+    airline_delay.sum(axis=1),
+    axis=0
+) * 100
+
+plt.figure(figsize=(14,7))
+
+airline_pct.plot(kind="bar", stacked=True)
+
+plt.title("Percentage of Delay Causes by Airline")
+plt.ylabel("Delay Share (%)")
+plt.xlabel("Airline")
+plt.tight_layout()
+plt.show()
+
 # Most flown routes
 df["route"] = df["origin"].astype(str) + "-" + df["dest"].astype(str)
 

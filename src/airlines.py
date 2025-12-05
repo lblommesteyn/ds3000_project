@@ -37,13 +37,14 @@ monthly_airline = (
     .size()
     .reset_index(name="flight_count")
 )
+monthly_airline["Airline"] = monthly_airline["op_unique_carrier"]
 
 plt.figure(figsize=(10,6))
 sns.lineplot(
     data=monthly_airline,
     x="month",
     y="flight_count",
-    hue="op_unique_carrier"
+    hue="Airline"
 )
 
 plt.title("Monthly Flight Volume Per Airline")
@@ -228,6 +229,7 @@ cancel_month = (
         .reset_index()
 )
 cancel_month['cancel_rate'] = cancel_month['cancelled'] / cancel_month['flights']
+cancel_month["Airlines"] = cancel_month["op_unique_carrier"]
 
 print("\n=== MONTHLY CANCELLATION STATS (FIRST FEW ROWS) ===")
 print(cancel_month.head())
@@ -238,7 +240,7 @@ sns.lineplot(
     data=cancel_month,
     x='month',
     y='cancel_rate',
-    hue='op_unique_carrier',
+    hue='Airlines',
     marker='o'
 )
 plt.title("Monthly Cancellation Rate by Airline")
@@ -282,5 +284,58 @@ plt.xticks(
     ticks=range(1,13),
     labels=[calendar.month_abbr[m] for m in range(1,13)]
 )
-plt.tight_layout()
 plt.savefig("plots/airlines/security_delay.png")
+plt.tight_layout()
+plt.show()
+
+# Most reliable airlines
+df["on_time"] = (
+    (df["arr_delay"] <= 15) &
+    (df["cancelled"] == 0) &
+    (df["diverted"] == 0)
+)
+
+reliability = (
+    df.groupby("op_unique_carrier")
+    .agg(
+        total_flights=("on_time","count"),
+        on_time_rate=("on_time","mean"),
+        cancel_rate=("cancelled","mean"),
+        divert_rate=("diverted","mean")
+    )
+    .sort_values("on_time_rate", ascending=False)
+    .reset_index()
+)
+
+print("\n=== MOST RELIABLE AIRLINES ===")
+print(reliability.head(10))
+
+plt.figure(figsize=(12,6))
+sns.barplot(x="op_unique_carrier", y="on_time_rate", data=reliability)
+plt.xticks(rotation=45)
+plt.title("On-Time Performance by Airline")
+plt.ylim(0,1)
+plt.xlabel("Airline")
+plt.ylabel("On Time %")
+plt.show()
+
+monthly_volume = (
+    df.groupby("month")
+      .size()
+      .reset_index(name="flight_count")
+)
+
+print("\n=== MONTHLY FLIGHT COUNTS ===")
+print(monthly_volume)
+
+plt.figure(figsize=(10,6))
+sns.lineplot(data=monthly_volume, x="month", y="flight_count", marker='o')
+plt.title("Monthly Air Traffic Volume (Single-Year Dataset)")
+plt.xlabel("Month")
+plt.ylabel("Flights")
+plt.xticks(
+    ticks=range(1,13),
+    labels=[calendar.month_abbr[m] for m in range(1,13)]
+)
+plt.show()
+

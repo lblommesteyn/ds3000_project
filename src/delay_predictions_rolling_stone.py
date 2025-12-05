@@ -165,7 +165,7 @@ plt.figure(figsize=(12,6))
 plt.plot(daily["fl_date"], daily["mean_delay"], label="Historical")
 plt.plot(future_df["fl_date"], future_df["prediction"], linestyle="dashed", color="red", label="Forecast")
 
-plt.title("30-Day Daily Arrival Delay Forecast")
+plt.title("120-Day Daily Arrival Delay Forecast")
 plt.xlabel("Date")
 plt.ylabel("Predicted Average Delay (minutes)")
 plt.legend()
@@ -209,7 +209,7 @@ print(f"AUC Score: {roc_auc:.3f}")
 fpr, tpr, thresholds = roc_curve(y_test_class, pred_test)
 
 plt.figure(figsize=(7,6))
-plt.plot(tpr, 1 - fpr)
+plt.plot(fpr, tpr)
 
 plt.plot([0,1],[1,0], linestyle="--", color="gray", label="Random")
 
