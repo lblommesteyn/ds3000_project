@@ -2,7 +2,7 @@ import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
-import calender
+import calendar
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import IsolationForest
