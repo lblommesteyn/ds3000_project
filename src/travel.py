@@ -12,7 +12,7 @@ from sklearn.ensemble import IsolationForest
 
 sns.set(style="whitegrid")
 
-df = load_df()
+df = pd.read_csv("../flight_data_2024.csv")
 
 df['fl_date'] = pd.to_datetime(df['fl_date'], errors='coerce')
 
@@ -105,13 +105,16 @@ monthly_delays = monthly_delays.rename(columns=CAUSE_NAMES)
 plt.figure(figsize=(12,6))
 
 for cause in monthly_delays.columns:
-    plt.plot(monthly_delays.index, monthly_delays[cause], label=cause)
+    plt.plot(monthly_delays.index, monthly_delays[cause] / 60, label=cause)
 
 plt.title("Monthly Delay Hours by Cause")
 plt.xlabel("Month")
 plt.ylabel("Total Delay Hours")
 plt.legend()
-plt.xticks(range(1,13))
+plt.xticks(
+    ticks=range(1,13),
+    labels=[calendar.month_abbr[m] for m in range(1,13)]
+)
 plt.tight_layout()
 plt.show()
 

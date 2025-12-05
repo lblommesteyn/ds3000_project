@@ -24,12 +24,31 @@ print(df.columns.tolist())
 print(df.head())
 
 
-# SEASONALITY — FLIGHT VOLUME BY MONTH × AIRLINE
 df_valid = df[
     (df["distance"] > 0) &
     (df["air_time"] > 0)
 ].copy()
 
+# Monthly Air traffic
+monthly_volume = (
+    df.groupby("month")
+      .size()
+      .reset_index(name="flight_count")
+)
+
+print("\n=== MONTHLY FLIGHT COUNTS ===")
+print(monthly_volume)
+
+plt.figure(figsize=(10,6))
+sns.lineplot(data=monthly_volume, x="month", y="flight_count", marker='o')
+plt.title("Monthly Air Traffic Volume")
+plt.xlabel("Month")
+plt.ylabel("Flights")
+plt.xticks(
+    ticks=range(1,13),
+    labels=[calendar.month_abbr[m] for m in range(1,13)]
+)
+plt.show()
 
 monthly_airline = (
     df_valid
@@ -319,23 +338,5 @@ plt.xlabel("Airline")
 plt.ylabel("On Time %")
 plt.show()
 
-monthly_volume = (
-    df.groupby("month")
-      .size()
-      .reset_index(name="flight_count")
-)
 
-print("\n=== MONTHLY FLIGHT COUNTS ===")
-print(monthly_volume)
-
-plt.figure(figsize=(10,6))
-sns.lineplot(data=monthly_volume, x="month", y="flight_count", marker='o')
-plt.title("Monthly Air Traffic Volume (Single-Year Dataset)")
-plt.xlabel("Month")
-plt.ylabel("Flights")
-plt.xticks(
-    ticks=range(1,13),
-    labels=[calendar.month_abbr[m] for m in range(1,13)]
-)
-plt.show()
 
