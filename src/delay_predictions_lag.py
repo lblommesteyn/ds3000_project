@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.ensemble import RandomForestRegressor
+from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix, roc_curve, roc_auc_score
 
 df = pd.read_csv("../flight_data_2024.csv")
 
@@ -191,3 +192,48 @@ plt.show()
 
 print("\n===== NEXT 30 DAYS: PREDICTED DAILY ARRIVAL DELAYS =====")
 print(future_df[["fl_date", "prediction"]])
+
+DELAY_THRESHOLD = 1
+
+# Convert regression outputs → classification labels
+y_test_class = (y_test > DELAY_THRESHOLD).astype(int)
+pred_test_class = (pred_test > DELAY_THRESHOLD).astype(int)
+
+# Compute metrics
+precision = precision_score(y_test_class, pred_test_class)
+recall    = recall_score(y_test_class, pred_test_class)
+f1        = f1_score(y_test_class, pred_test_class)
+
+print("\n===== CLASSIFICATION METRICS (Delay > 1 min) =====")
+print(f"Precision : {precision:.3f}")
+print(f"Recall    : {recall:.3f}")
+print(f"F1 Score  : {f1:.3f}")
+
+# Confusion Matrix
+cm = confusion_matrix(y_test_class, pred_test_class)
+
+print("\n===== CONFUSION MATRIX =====")
+print("Rows: Actual   | Columns: Predicted")
+print("[ TN   FP ]")
+print("[ FN   TP ]")
+print(cm)
+
+roc_auc = roc_auc_score(y_test_class, pred_test)
+
+print("\n===== ROC-AUC =====")
+print(f"AUC Score: {roc_auc:.3f}")
+
+# Plot ROC Curve
+fpr, tpr, thresholds = roc_curve(y_test_class, pred_test)
+
+plt.figure(figsize=(7,6))
+plt.plot(fpr, tpr)
+
+plt.plot([0,1],[1,0], linestyle="--", color="gray", label="Random")
+
+plt.xlabel("True Positive Rate (Recall)")
+plt.ylabel("True Negative Rate")
+plt.title("ROC Curve – Daily Delay Prediction")
+plt.legend()
+plt.tight_layout()
+plt.show()
