@@ -3,13 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import calendar
+import os   
+
+from data_prep import load_df
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import IsolationForest
 
 sns.set(style="whitegrid")
 
-df = pd.read_csv("../flight_data_2024.csv")
+df = load_df()
 
 df['fl_date'] = pd.to_datetime(df['fl_date'], errors='coerce')
 
@@ -122,7 +125,8 @@ plt.title("Most-Used Flight Routes (Top Airports Only)")
 plt.xlabel("Destination Airport")
 plt.ylabel("Origin Airport")
 plt.tight_layout()
-plt.show()
+os.makedirs("plots/travel", exist_ok=True)
+plt.savefig("plots/travel/route_heatmap.png")
 
 sns.heatmap(
     city_heatmap,
@@ -135,7 +139,7 @@ plt.title("Most Active Cities by Flight Traffic")
 plt.xlabel("Traffic Type")
 plt.ylabel("Airport Code")
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/travel/city_heatmap.png")
 
 print("\n=== TOP BUSIEST ROUTES ===")
 print(
@@ -185,7 +189,7 @@ plt.title("Top 10 Longest Single-Day Travel Paths — Same Airline")
 plt.xlabel("Distance Traveled (Thousands of Miles)")
 plt.ylabel("Airline")
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/travel/longest_paths.png")
 
 
 # Distance vs Delay (By Airline)
@@ -205,7 +209,7 @@ plt.title("Arrival Delay vs Flight Distance")
 plt.xlabel("Distance (miles)")
 plt.ylabel("Arrival Delay (minutes)")
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/travel/delay_vs_distance.png")
 
 # Speed destribution by Airline
 df_valid["speed_mph"] = 60 * df_valid["distance"] / df_valid["air_time"]
@@ -223,7 +227,7 @@ plt.xlabel("Airline")
 plt.ylabel("Speed (mph)")
 plt.ylim(200, 650)
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/travel/speed_distribution.png")
 
 
 # Most flown routes
@@ -251,7 +255,7 @@ plt.title(f"Top {TOP_N_ROUTES} Most-Flown Routes (Year Total)")
 plt.xlabel("Number of Flights")
 plt.ylabel("Route (Origin–Destination)")
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/travel/top_routes_year.png")
 
 # Per month: same top routes only
 route_month = (
@@ -277,4 +281,4 @@ plt.xticks(
     labels=[calendar.month_abbr[m] for m in range(1,13)]
 )
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/travel/top_routes_month.png")

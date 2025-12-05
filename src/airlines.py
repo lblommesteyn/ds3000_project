@@ -3,13 +3,16 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import calendar
+import os
+
+from data_prep import load_df
 
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import IsolationForest
 
 sns.set(style="whitegrid")
 
-df = pd.read_csv("../flight_data_2024.csv")
+df = load_df()
 
 df['fl_date'] = pd.to_datetime(df['fl_date'], errors='coerce')
 
@@ -51,7 +54,8 @@ plt.xticks(
     labels=[calendar.month_abbr[m] for m in range(1,13)]
 )
 plt.tight_layout()
-plt.show()
+os.makedirs("plots/airlines", exist_ok=True)
+plt.savefig("plots/airlines/monthly_airline.png")
 
 # Delay probability heatmap (By Airline)
 df_valid = df[
@@ -95,7 +99,7 @@ plt.title("Probability of Delay by Route (Busy Routes Only)")
 plt.xlabel("Destination")
 plt.ylabel("Origin")
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/airlines/route_delay.png")
 
 busy_routes = route_delay.query("flights >= 100")
 
@@ -149,7 +153,7 @@ plt.title("Probability of Delay by Route (Top Airports Only)")
 plt.xlabel("Destination")
 plt.ylabel("Origin")
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/airlines/route_delay_top_airports.png")
 
 
 # Taxi time by Airline
@@ -182,7 +186,7 @@ if taxi_cols:
     plt.xlabel("Average Taxi Time (min)")
     plt.ylabel("Airline")
     plt.tight_layout()
-    plt.show()
+    plt.savefig("plots/airlines/taxi_time.png")
 
 
 # Cancellation rate by Airline (Month and year)
@@ -212,7 +216,7 @@ plt.title("Cancellation Rate by Airline (Year Total)")
 plt.xlabel("Cancellation Rate")
 plt.ylabel("Airline")
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/airlines/cancel_year.png")
 
 # Per month per airline
 cancel_month = (
@@ -245,7 +249,7 @@ plt.xticks(
     labels=[calendar.month_abbr[m] for m in range(1,13)]
 )
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/airlines/cancel_month.png")
 
 
 # Flights delayed for security concerns (By month)
@@ -279,4 +283,4 @@ plt.xticks(
     labels=[calendar.month_abbr[m] for m in range(1,13)]
 )
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/airlines/security_delay.png")

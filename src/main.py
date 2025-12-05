@@ -1,3 +1,4 @@
+import os
 import matplotlib.pyplot as plt
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
@@ -32,7 +33,8 @@ plt.title("Probability of Delay >15 min by Departure Hour")
 plt.xlabel("Scheduled Departure Hour")
 plt.ylabel("Delay Rate")
 plt.grid(True)
-plt.show()
+os.makedirs("plots/main", exist_ok=True)
+plt.savefig("plots/main/delay_by_hour.png")
 
 # top delays by airport
 top_airports = (
@@ -59,7 +61,7 @@ plt.colorbar(label = "Average Arrival Delay (minutes)")
 plt.xticks(range(12), range(1,13))
 plt.yticks(range(len(pivot.index)), pivot.index)
 plt.title("Monthly Delay Patterns Across Major Airports")
-plt.show()
+plt.savefig("plots/main/delay_by_airport.png")
 
 # logistic regression model
 model_df = df[

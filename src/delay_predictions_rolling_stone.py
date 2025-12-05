@@ -1,13 +1,16 @@
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
+import os
+
+from data_prep import load_df
 
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error, r2_score
 from sklearn.ensemble import RandomForestRegressor
 from sklearn.metrics import precision_score, recall_score, f1_score, confusion_matrix, roc_curve, roc_auc_score
 
-df = pd.read_csv("../flight_data_2024.csv")
+df = load_df()
 
 df['fl_date'] = pd.to_datetime(df['fl_date'], errors='coerce')
 
@@ -99,7 +102,8 @@ plt.xlabel("Date")
 plt.ylabel("Average Delay (minutes)")
 plt.legend()
 plt.tight_layout()
-plt.show()
+os.makedirs("plots/rolling_stone", exist_ok=True)
+plt.savefig("plots/rolling_stone/daily_delay.png")
 
 # Feature importance
 importances = pd.Series(model.feature_importances_, index=FEATURES)
@@ -111,7 +115,7 @@ print(importances)
 importances.plot(kind="barh", figsize=(8,6))
 plt.title("Daily Delay Forecast Feature Importance")
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/rolling_stone/daily_delay_importance.png")
 
 # Delay Forcast
 future_days = 120
@@ -166,7 +170,7 @@ plt.xlabel("Date")
 plt.ylabel("Predicted Average Delay (minutes)")
 plt.legend()
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/rolling_stone/daily_delay_forecast.png")
 
 print("\n===== NEXT 30 DAYS: PREDICTED DAILY ARRIVAL DELAYS =====")
 print(future_df[["fl_date", "prediction"]])
@@ -214,5 +218,5 @@ plt.ylabel("True Negative Rate")
 plt.title("ROC Curve – Daily Delay Prediction")
 plt.legend()
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/rolling_stone/daily_delay_roc.png")
 

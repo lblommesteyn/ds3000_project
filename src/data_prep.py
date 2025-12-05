@@ -19,14 +19,14 @@ dtype_map = {
 parse_dates = ["fl_date"]
 
 def load_df():
-  DATA_FILE_NAME = "flight_data_2024.csv"
-  DATA_PATH = Path(DATA_FILE_NAME)
+  DATA_FILE_NAME_IN_DATASET = "flight_data_2024.csv"
+  DATA_PATH = Path(DATA_FILE_NAME_IN_DATASET)
 
   if not DATA_PATH.exists():
     print("Downloading dataset...")
-    download_root = kagglehub.dataset_download("hrishitpatil/flight-data-2024")
-    downloaded_file = Path(download_root) / DATA_FILE_NAME
-    downloaded_file.rename(DATA_PATH)
+    download_root_dir = kagglehub.dataset_download("hrishitpatil/flight-data-2024")
+    downloaded_file_path = Path(download_root_dir) / DATA_FILE_NAME_IN_DATASET
+    downloaded_file_path.rename(DATA_PATH)
     print("Dataset downloaded to:", DATA_PATH)
 
   return pd.read_csv(

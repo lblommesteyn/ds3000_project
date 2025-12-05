@@ -3,13 +3,15 @@ import numpy as np
 import matplotlib.pyplot as plt
 import seaborn as sns
 import calendar
+import os
 
+from data_prep import load_df
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import IsolationForest
 
 sns.set(style="whitegrid")
 
-df = pd.read_csv("../flight_data_2024.csv")
+df = load_df()
 
 df['fl_date'] = pd.to_datetime(df['fl_date'], errors='coerce')
 
@@ -25,25 +27,30 @@ features = ['dep_delay', 'arr_delay', 'distance', 'air_time']
 df_ml = df[features].dropna()
 
 scaler = StandardScaler()
+print("Scaling features...")
 X_scaled = scaler.fit_transform(df_ml)
+print("Features scaled.")
 
 model = IsolationForest(
     n_estimators=200,
     contamination=0.015,
     random_state=42
 )
-
+print("Fitting Isolation Forest model...")
 df_ml['anomaly_flag'] = model.fit_predict(X_scaled)
+print("Isolation Forest model fitted and anomalies predicted.")
 
 df_ml_indexed = df_ml.copy()
 df_ml_indexed["row_id"] = df_ml_indexed.index
 
+print("Merging anomaly flags back to main DataFrame...")
 df_main = df.reset_index().merge(
     df_ml_indexed[["row_id", "anomaly_flag"]],
     left_on="index",
     right_on="row_id",
     how="left"
 )
+print("Anomaly flags merged.")
 
 df_main["is_anomaly"] = df_main["anomaly_flag"] == -1
 
@@ -78,7 +85,8 @@ plt.xticks(
 )
 plt.legend(ncol=4, fontsize=7)
 plt.tight_layout()
-plt.show()
+os.makedirs("plots/anomalies", exist_ok=True)
+plt.savefig("plots/anomalies/airline_monthly.png")
 
 # Root cause of anomalies
 
@@ -155,7 +163,7 @@ plt.xticks(
 )
 plt.legend(fontsize=7, ncol=2)
 plt.tight_layout()
-plt.show()
+plt.savefig("plots/anomalies/origin_monthly.png")
 
 
 df_valid = df[
