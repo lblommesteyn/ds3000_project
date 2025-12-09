@@ -1,0 +1,199 @@
+\documentclass[conference]{IEEEtran}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+\usepackage{hyperref}
+
+\begin{document}
+
+\title{Flight Delay Analysis and Prediction Using 2024 US Flight Data}
+
+\author{\IEEEauthorblockN{Pratik Narendra Gupta}
+\IEEEauthorblockA{\textit{Western University} \\
+London, ON, Canada \\
+pgupta85@uwo.ca}
+\and
+\IEEEauthorblockN{Luke Blommesteyn}
+\IEEEauthorblockA{\textit{Western University} \\
+London, ON, Canada \\
+lblommes@uwo.ca}
+\and
+\IEEEauthorblockN{Augusts Zilakovs}
+\IEEEauthorblockA{\textit{Western University} \\
+London, ON, Canada \\
+azilakov@uwo.ca}
+\and
+\IEEEauthorblockN{Justin Zomer}
+\IEEEauthorblockA{\textit{Western University} \\
+London, ON, Canada \\
+jzomer@uwo.ca}
+}
+
+\maketitle
+
+\begin{abstract}
+This report presents a comprehensive analysis of the 2024 US domestic flight dataset to identify patterns in delay behavior and develop predictive models. By leveraging a dataset of approximately 7 million flights, we implemented a data science pipeline encompassing rigorous preprocessing, exploratory data analysis (EDA), and machine learning modeling. Our approach utilized Isolation Forests for anomaly detection and XGBoost for delay prediction. The results highlight significant variation in airline reliability and demonstrate that while identifying individual flight delays remains challenging (ROC-AUC $\approx$ 0.69), aggregate daily delay trends can be predicted with high accuracy ($R^2 \approx$ 0.78) using rolling window features.
+\end{abstract}
+
+\begin{IEEEkeywords}
+Flight Delay Prediction, XGBoost, Anomaly Detection, Machine Learning, Data Science.
+\end{IEEEkeywords}
+
+\section{Introduction}
+Flight delays represent a persistent operational and economic challenge within the global aviation industry. The US Bureau of Transportation Statistics (BTS) reported that in 2024, approximately 236 million passengers were affected by delays or cancellations, with an overall on-time arrival rate of 78.1\% \cite{bts_2024}. Major disruptions in 2024 included the global IT outage caused by a CrowdStrike update in July and severe weather events like Hurricane Debby \cite{airhelp}.
+
+The primary objective of this project is to identify key factors contributing to departure and arrival delays in US domestic flights during 2024 and to construct predictive models that estimate the likelihood of delay. The motivation extends beyond descriptive analytics; accurate predictions can support airline efficiency and improve passenger experiences.
+
+This report outlines our methodology, from raw data ingestion to the deployment of advanced machine learning models. We address the problem through three specific goals:
+\begin{enumerate}
+    \item \textbf{Characterization}: Quantifying delay distributions and identifying carrier-specific reliability.
+    \item \textbf{Detection}: Using unsupervised learning to identify and remove anomalous flight records.
+    \item \textbf{Prediction}: Training supervised models to forecast delays at both the individual flight level and the aggregate daily level.
+\end{enumerate}
+
+The complete source code and implementation details are available in our Git repository: \url{https://github.com/lblommesteyn/ds3000_project}.
+
+\section{Dataset Description}
+The analysis utilizes the \textbf{2024 Domestic Flights Dataset} sourced from Kaggle. This comprehensive dataset contains detailed records of scheduled and actual departure/arrival times, carrier identifiers, flight numbers, and origin/destination airports.
+
+\subsection{Key Attributes}
+The raw dataset comprises approximately 7,079,081 flight records with 35 columns, including:
+\begin{itemize}
+    \item \textbf{Temporal}: \texttt{fl\_date}, \texttt{crs\_dep\_time}, \texttt{dep\_time}, \texttt{crs\_arr\_time}.
+    \item \textbf{Categorical}: \texttt{op\_unique\_carrier} (Airline Code), \texttt{origin}, \texttt{dest}.
+    \item \textbf{Numerical}: \texttt{dep\_delay}, \texttt{arr\_delay}, \texttt{air\_time}, \texttt{distance}.
+    \item \textbf{Labels}: Binary delay indicators were derived for supervised learning, where a flight is considered ``delayed'' if it arrives more than 15 minutes past its scheduled time.
+\end{itemize}
+
+\subsection{Data Quality and Preprocessing}
+Initial inspection revealed issues common in large-scale operational data, such as missing values for cancelled flights and inconsistencies in time formats. Our preprocessing pipeline included:
+\begin{enumerate}
+    \item \textbf{Standardization}: Converting HHMM integer time formats into standard datetime objects.
+    \item \textbf{Imputation}: Missing values for delay fields were handled based on carrier and route-specific historical medians, while cancelled flights were flagged separately.
+    \item \textbf{Outlier Removal}: Logical filters were applied to remove impossible values (e.g., negative air times).
+\end{enumerate}
+
+\section{Methodology}
+Our project methodology followed a structured data science lifecycle: Exploratory Data Analysis (EDA), Anomaly Detection, and Predictive Modeling.
+
+\subsection{Exploratory Data Analysis (EDA)}
+We conducted extensive EDA to understand the underlying distributions of the data. This involved generating statistical summaries of delay variation across hours of the day, days of the week, and seasonal trends. We specifically analyzed carrier performance to identify the most and least reliable airlines.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{src/plots/main/delay_by_hour.png}
+\caption{Average delay by hour of the day, highlighting the accumulation of delays as the day progresses.}
+\label{fig:delay_hour}
+\end{figure}
+
+\subsection{Anomaly Detection (Isolation Forest)}
+To improve the robustness of our predictive models, we employed an \textbf{Isolation Forest} algorithm. This unsupervised learning technique isolates anomalies by randomly selecting a feature and then randomly selecting a split value between the maximum and minimum values of the selected feature.
+\begin{itemize}
+    \item \textbf{Input}: Scaled features including \texttt{dep\_delay}, \texttt{air\_time}, and \texttt{distance}.
+    \item \textbf{Outcome}: The model identified records with extreme deviation from nominal operations, such as data entry errors or extreme weather events irrelevant to standard modeling.
+\end{itemize}
+
+\subsection{Predictive Modeling (XGBoost)}
+We utilized \textbf{XGBoost (Extreme Gradient Boosting)} for the classification task of predicting flight delays. XGBoost was selected for its efficiency and ability to handle non-linear relationships and interactions between features.
+\begin{itemize}
+    \item \textbf{Baseline Model}: Trained on standard flight metadata.
+    \item \textbf{No-Leakage Model}: A strict temporal split was enforced to prevent data leakage (using future information to predict the past).
+    \item \textbf{Evaluation}: Models were evaluated using ROC-AUC, Precision, Recall, and F1-score.
+\end{itemize}
+
+\subsection{Time-Series Forecasting (Rolling/Lag Models)}
+Recognizing the temporal dependency of delays, we implemented a ``Rolling Stone'' prediction model. This approach aggregates delays on a daily basis and uses rolling averages (e.g., 3-day and 7-day lag) and standard deviations (\texttt{std\_delay}) as features to predict the average delay for subsequent days.
+
+\section{Results}
+
+\subsection{Carrier Reliability Analysis}
+Our analysis of over 7 million flights identified distinct tiers of airline reliability. The top 5 airlines by on-time rate were:
+\begin{enumerate}
+    \item \textbf{YX (Republic Airways)}: 84.7\%
+    \item \textbf{HA (Hawaiian Airlines)}: 84.5\%
+    \item \textbf{9E (Endeavor Air)}: 82.5\%
+    \item \textbf{DL (Delta Air Lines)}: 82.4\%
+    \item \textbf{OO (SkyWest Airlines)}: 80.4\%
+\end{enumerate}
+
+These findings align with industry reports indicating Delta (DL) as a top-performing major carrier in 2024 \cite{cirium}. Conversely, carriers such as \textbf{OH (PSA Airlines)} and \textbf{G4 (Allegiant Air)} showed lower reliability, with on-time rates around 77\%.
+
+\subsection{Anomaly Detection}
+The Isolation Forest model successfully detected \textbf{104,479 anomalies}. The primary causes for flagging were:
+\begin{itemize}
+    \item \textbf{Extreme Departure Delay}: 85,280 instances.
+    \item \textbf{Abnormally Long Air Time}: 17,427 instances.
+    \item \textbf{Abnormally Short Air Time}: 963 instances.
+\end{itemize}
+Removing these outliers ensured that our supervised models were trained on representative operational data.
+
+\subsection{Classification Performance (XGBoost)}
+The classification task of predicting individual flight delays proved challenging due to the high variance and stochastic nature of individual flight operations.
+\begin{itemize}
+    \item \textbf{Baseline XGBoost ROC-AUC}: 0.7039
+    \item \textbf{No-Leakage XGBoost ROC-AUC}: 0.6923
+\end{itemize}
+
+Detailed classification metrics for the No-Leakage model:
+\begin{itemize}
+    \item \textbf{Class 0 (On-time)}: Precision 0.87, Recall 0.65.
+    \item \textbf{Class 1 (Delayed)}: Precision 0.31, Recall 0.62.
+\end{itemize}
+While the model captures 62\% of delayed flights (Recall), the low precision (31\%) indicates a high False Positive Rate, suggesting that while the model learns signal, individual delays are heavily influenced by unobserved variables (e.g., real-time weather, maintenance).
+
+\subsection{Daily Aggregate Prediction}
+The daily delay prediction model yielded significantly stronger results, validating the presence of systematic temporal trends.
+\begin{itemize}
+    \item \textbf{R-squared ($R^2$)}: 0.786
+    \item \textbf{Mean Absolute Error (MAE)}: 2.67 minutes
+    \item \textbf{ROC-AUC (Daily Classification)}: 0.975
+\end{itemize}
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{src/plots/rolling_stone/daily_delay_importance.png}
+\caption{Feature Importance for Daily Delay Prediction. Standard deviation of previous delays is the dominant predictor.}
+\label{fig:importance}
+\end{figure}
+
+\textbf{Feature Importance}:
+The most influential feature was \texttt{std\_delay} (Standard Deviation of Delay), followed by \texttt{delay\_3d\_avg} and \texttt{flight\_count}. This indicates that the volatility of delays in the preceding days is a strong predictor of future system performance.
+
+\begin{figure}[htbp]
+\centering
+\includegraphics[width=\columnwidth]{src/plots/rolling_stone/daily_delay_forecast.png}
+\caption{Forecast of Daily Average Delays showing the model's ability to track trends.}
+\label{fig:forecast}
+\end{figure}
+
+\section{Conclusion and Discussion}
+This study demonstrates the efficacy of machine learning in analyzing aviation data. We successfully processed a massive dataset of 7 million flights to benchmark carrier performance and detect operational anomalies.
+
+Our predictive modeling results suggest a dichotomy in predictability:
+\begin{enumerate}
+    \item \textbf{Individual Flight Level}: Predicting specific flight delays is difficult (AUC $\approx$ 0.69) using only schedule and carrier data. The stochastic nature of mechanical issues and local weather creates a high ``noise'' floor.
+    \item \textbf{System Level}: Aggregated daily delays are highly predictable ($R^2 \approx$ 0.79). The strong performance of rolling lag features implies that delays are systemic and persistent; a bad day tends to have cascading effects that are measurable in the statistical variance of the network.
+\end{enumerate}
+
+\textbf{Next Steps}: Future work should focus on integrating real-time weather APIs and incoming aircraft tracking to improve individual flight prediction. Additionally, analyzing airport-specific congestion metrics could further refine the models.
+
+\begin{thebibliography}{00}
+
+\bibitem{bts_2024} US Department of Transportation, ``Air Travel Consumer Report: September 2024 and Full Year 2024 Numbers,'' 2024. [Online]. Available: \url{https://www.transportation.gov/}.
+
+\bibitem{airhelp} AirHelp, ``US Fight Delays 2024: Statistics and Causes,'' 2024. [Online].
+
+\bibitem{cirium} Cirium, ``The On-Time Performance Review 2024: Airlines and Airports,'' 2024.
+
+\bibitem{xgboost} T. Chen and C. Guestrin, ``XGBoost: A Scalable Tree Boosting System,'' in \textit{Proc. of the 22nd ACM SIGKDD}, 2016.
+
+\bibitem{isoforest} F. T. Liu, K. M. Ting and Z.-H. Zhou, ``Isolation Forest,'' in \textit{Eighth IEEE International Conference on Data Mining}, 2008.
+
+\bibitem{kaggle} Kaggle, ``2024 US Domestic Flights Dataset,'' 2024. [Online].
+
+\end{thebibliography}
+
+\end{document}

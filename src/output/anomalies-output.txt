@@ -1,0 +1,27 @@
+Loaded columns:
+['year', 'month', 'day_of_month', 'day_of_week', 'fl_date', 'op_unique_carrier', 'op_carrier_fl_num', 'origin', 'origin_city_name', 'origin_state_nm', 'dest', 'dest_city_name', 'dest_state_nm', 'crs_dep_time', 'dep_time', 'dep_delay', 'taxi_out', 'wheels_off', 'wheels_on', 'taxi_in', 'crs_arr_time', 'arr_time', 'arr_delay', 'cancelled', 'cancellation_code', 'diverted', 'crs_elapsed_time', 'actual_elapsed_time', 'air_time', 'distance', 'carrier_delay', 'weather_delay', 'nas_delay', 'security_delay', 'late_aircraft_delay']
+   year  month  day_of_month  ...  nas_delay security_delay late_aircraft_delay
+0  2024      1             1  ...          0              0                   0
+1  2024      1             1  ...          0              0                   0
+2  2024      1             1  ...          0              0                   0
+3  2024      1             1  ...          0              0                   0
+4  2024      1             1  ...          0              0                   0
+
+[5 rows x 35 columns]
+Scaling features...
+Features scaled.
+Fitting Isolation Forest model...
+Isolation Forest model fitted and anomalies predicted.
+Merging anomaly flags back to main DataFrame...
+Anomaly flags merged.
+
+✅ Total Anomalies Detected: 104479
+
+=== ANOMALY CAUSES ===
+               anomaly_cause  count
+0    Extreme Departure Delay  85280
+1   Abnormally Long Air Time  17427
+2  Abnormally Short Air Time    963
+3       Other / Data Quality    428
+4      Extreme Arrival Delay    378
+5       Unrealistically Fast      3

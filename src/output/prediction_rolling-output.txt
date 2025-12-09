@@ -1,0 +1,45 @@
+
+===== DAILY DELAY MODEL PERFORMANCE =====
+MAE : 2.67 minutes
+R2  : 0.786
+
+===== MOST IMPORTANT FEATURES =====
+std_delay       0.910151
+delay_3d_avg    0.044013
+flight_count    0.017919
+delay_7d_avg    0.013785
+day_of_year     0.009147
+day_of_week     0.004984
+cancel_rate     0.000000
+dtype: float64
+
+===== NEXT 30 DAYS: PREDICTED DAILY ARRIVAL DELAYS =====
+       fl_date  prediction
+0   2025-01-01   11.408149
+1   2025-01-02   13.003805
+2   2025-01-03   14.769121
+3   2025-01-04   16.079126
+4   2025-01-05   13.435938
+..         ...         ...
+115 2025-04-26   12.747910
+116 2025-04-27   12.678255
+117 2025-04-28   12.942461
+118 2025-04-29   12.980326
+119 2025-04-30   13.017093
+
+[120 rows x 2 columns]
+
+===== CLASSIFICATION METRICS (Delay > 1 min) =====
+Precision : 0.828
+Recall    : 0.923
+F1 Score  : 0.873
+
+===== CONFUSION MATRIX =====
+Rows: Actual   | Columns: Predicted
+[ TN   FP ]
+[ FN   TP ]
+[[23  5]
+ [ 2 24]]
+
+===== ROC-AUC =====
+AUC Score: 0.975

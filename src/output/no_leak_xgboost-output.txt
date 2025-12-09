@@ -1,0 +1,13 @@
+Using 400,000 rows for *clean* XGBoost
+
+XGBoost (no data leakage) – ROC-AUC: 0.6923
+
+              precision    recall  f1-score   support
+
+         0.0       0.87      0.65      0.75     63894
+         1.0       0.31      0.62      0.41     16106
+
+    accuracy                           0.65     80000
+   macro avg       0.59      0.64      0.58     80000
+weighted avg       0.76      0.65      0.68     80000
+

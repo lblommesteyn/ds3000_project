@@ -1,0 +1,73 @@
+<class 'pandas.core.frame.DataFrame'>
+RangeIndex: 7079081 entries, 0 to 7079080
+Data columns (total 35 columns):
+ #   Column               Dtype         
+---  ------               -----         
+ 0   year                 int64         
+ 1   month                int64         
+ 2   day_of_month         int64         
+ 3   day_of_week          int64         
+ 4   fl_date              datetime64[ns]
+ 5   op_unique_carrier    category      
+ 6   op_carrier_fl_num    float64       
+ 7   origin               category      
+ 8   origin_city_name     category      
+ 9   origin_state_nm      category      
+ 10  dest                 category      
+ 11  dest_city_name       category      
+ 12  dest_state_nm        category      
+ 13  crs_dep_time         int64         
+ 14  dep_time             float64       
+ 15  dep_delay            float64       
+ 16  taxi_out             float64       
+ 17  wheels_off           float64       
+ 18  wheels_on            float64       
+ 19  taxi_in              float64       
+ 20  crs_arr_time         int64         
+ 21  arr_time             float64       
+ 22  arr_delay            float64       
+ 23  cancelled            Int8          
+ 24  cancellation_code    object        
+ 25  diverted             Int8          
+ 26  crs_elapsed_time     float64       
+ 27  actual_elapsed_time  float64       
+ 28  air_time             float64       
+ 29  distance             float32       
+ 30  carrier_delay        int64         
+ 31  weather_delay        int64         
+ 32  nas_delay            int64         
+ 33  security_delay       int64         
+ 34  late_aircraft_delay  int64         
+dtypes: Int8(2), category(7), datetime64[ns](1), float32(1), float64(12), int64(11), object(1)
+memory usage: 1.4+ GB
+Avg Arrival Delay: 7.0982456
+Percent Delayed >15: 0.19824437663589384
+Number of Flights: 7079081
+origin
+MGW    69.054054
+EWN    58.489361
+HTS    41.864079
+SMX    39.301888
+CKB    35.425743
+HGR    32.573425
+HYA    32.220932
+OTH    29.793510
+STX    25.457167
+SCK    24.654970
+USA    22.192701
+DEC    21.990789
+PBG    21.908142
+MCW    21.332226
+SPI    20.980953
+Name: arr_delay, dtype: float32
+ROC-AUC: 0.6375359465382582
+              precision    recall  f1-score   support
+
+         0.0       0.80      1.00      0.89   1135139
+         1.0       0.53      0.00      0.00    280678
+
+    accuracy                           0.80   1415817
+   macro avg       0.67      0.50      0.45   1415817
+weighted avg       0.75      0.80      0.71   1415817
+
+XGBoost ROC-AUC: 0.7038799129933598

@@ -1,0 +1,97 @@
+Loaded columns:
+['year', 'month', 'day_of_month', 'day_of_week', 'fl_date', 'op_unique_carrier', 'op_carrier_fl_num', 'origin', 'origin_city_name', 'origin_state_nm', 'dest', 'dest_city_name', 'dest_state_nm', 'crs_dep_time', 'dep_time', 'dep_delay', 'taxi_out', 'wheels_off', 'wheels_on', 'taxi_in', 'crs_arr_time', 'arr_time', 'arr_delay', 'cancelled', 'cancellation_code', 'diverted', 'crs_elapsed_time', 'actual_elapsed_time', 'air_time', 'distance', 'carrier_delay', 'weather_delay', 'nas_delay', 'security_delay', 'late_aircraft_delay']
+   year  month  day_of_month  ...  nas_delay security_delay late_aircraft_delay
+0  2024      1             1  ...          0              0                   0
+1  2024      1             1  ...          0              0                   0
+2  2024      1             1  ...          0              0                   0
+3  2024      1             1  ...          0              0                   0
+4  2024      1             1  ...          0              0                   0
+
+[5 rows x 35 columns]
+
+=== MONTHLY FLIGHT COUNTS ===
+    month  flight_count
+0       1        547271
+1       2        519221
+2       3        591767
+3       4        582205
+4       5        609743
+5       6        611132
+6       7        634613
+7       8        619025
+8       9        582622
+9      10        615497
+10     11        575404
+11     12        590581
+
+=== AVERAGE TAXI TIME BY AIRLINE (minutes) ===
+   op_unique_carrier  taxi_time
+10                OH  30.718039
+5                 F9  30.515847
+14                YX  29.853283
+12                UA  28.639126
+2                 AS  28.362661
+11                OO  28.119386
+1                 AA  27.962434
+0                 9E  27.663368
+8                 MQ  27.045300
+3                 B6  26.931626
+4                 DL  25.614653
+9                 NK  24.989361
+6                 G4  21.601135
+7                 HA  20.471450
+13                WN  19.362836
+
+=== YEAR TOTAL CANCELLATIONS BY AIRLINE ===
+   op_unique_carrier  flights  cancelled  cancel_rate
+5                 F9   208624       4835     0.023176
+0                 9E   200094       4608     0.023029
+2                 AS   245819       4811     0.019571
+9                 NK   261103       4998     0.019142
+14                YX   301465       5576     0.018496
+6                 G4   117210       2018     0.017217
+10                OH   227971       3751     0.016454
+12                UA   760451      12478     0.016409
+3                 B6   240282       3735     0.015544
+1                 AA   984306      15252     0.015495
+8                 MQ   279955       3985     0.014234
+11                OO   744658       8527     0.011451
+7                 HA    78530        822     0.010467
+4                 DL  1009194       9147     0.009064
+13                WN  1419419      11772     0.008294
+
+=== MONTHLY CANCELLATION STATS (FIRST FEW ROWS) ===
+  op_unique_carrier  month  flights  cancelled  cancel_rate Airlines
+0                9E      1    16972        706     0.041598       9E
+1                9E      2    15656        233     0.014882       9E
+2                9E      3    17062         14     0.000821       9E
+3                9E      4    16964        158     0.009314       9E
+4                9E      5    16310        203     0.012446       9E
+
+=== FLIGHTS DELAYED FOR SECURITY REASONS BY MONTH ===
+    month  num_security_delayed_flights
+0       1                           864
+1       2                           551
+2       3                           771
+3       4                           624
+4       5                           695
+5       6                           846
+6       7                           911
+7       8                           652
+8       9                           316
+9      10                           332
+10     11                           296
+11     12                           548
+
+=== MOST RELIABLE AIRLINES ===
+  op_unique_carrier  total_flights  on_time_rate  cancel_rate  divert_rate
+0                YX         301465      0.846549     0.018496     0.001934
+1                HA          78530      0.844773     0.010467     0.000955
+2                9E         200094      0.825047     0.023029     0.002069
+3                DL        1009194      0.823854     0.009064     0.002181
+4                OO         744658      0.803913     0.011451     0.003015
+5                WN        1419419      0.793334     0.008294     0.002149
+6                UA         760451      0.792105     0.016409     0.002834
+7                MQ         279955      0.785226     0.014234     0.002333
+8                OH         227971      0.774186     0.016454     0.002399
+9                G4         117210       0.77362     0.017217     0.002645
