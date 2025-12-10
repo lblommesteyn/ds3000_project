@@ -35,7 +35,7 @@ jzomer@uwo.ca}
 \maketitle
 
 \begin{abstract}
-This report presents a comprehensive analysis of the 2024 US domestic flight dataset to identify patterns in delay behavior and develop predictive models. By leveraging a dataset of approximately 7 million flights, we implemented a data science pipeline encompassing rigorous preprocessing, exploratory data analysis (EDA), and machine learning modeling. Our approach utilized Isolation Forests for anomaly detection and XGBoost for delay prediction. The results highlight significant variation in airline reliability and demonstrate that while identifying individual flight delays remains challenging (ROC-AUC $\approx$ 0.69), aggregate daily delay trends can be predicted with high accuracy ($R^2 \approx$ 0.78) using rolling window features.
+This report presents a comprehensive analysis of the 2024 US domestic flight dataset to identify patterns in delay behavior and develop predictive models. By leveraging a dataset of approximately 7 million flights, we implemented a data science pipeline including preprocessing, exploratory data analysis (EDA), and machine learning modeling. Our approach utilized Isolation Forests for anomaly detection and XGBoost for delay prediction. The results highlight significant variation in airline reliability and demonstrate that while identifying individual flight delays remains challenging (ROC-AUC $\approx$ 0.69), aggregate daily delay trends can be predicted with high accuracy ($R^2 \approx$ 0.78) using rolling window features.
 \end{abstract}
 
 \begin{IEEEkeywords}
@@ -43,7 +43,7 @@ Flight Delay Prediction, XGBoost, Anomaly Detection, Machine Learning, Data Scie
 \end{IEEEkeywords}
 
 \section{Introduction}
-Flight delays represent a persistent operational and economic challenge within the global aviation industry. The US Bureau of Transportation Statistics (BTS) reported that in 2024, approximately 236 million passengers were affected by delays or cancellations, with an overall on-time arrival rate of 78.1\% \cite{bts_2024}. Major disruptions in 2024 included the global IT outage caused by a CrowdStrike update in July and severe weather events like Hurricane Debby \cite{airhelp}.
+Flight delays represent a continuous challenge within the global aviation industry. The US Bureau of Transportation Statistics (BTS) reported that in 2024, approximately 236 million passengers were affected by delays or cancellations, with an overall on-time arrival rate of 78.1\% \cite{bts_2024}. Major disruptions in 2024 included the global IT outage caused by a CrowdStrike update in July and severe weather events like Hurricane Debby \cite{airhelp}.
 
 The primary objective of this project is to identify key factors contributing to departure and arrival delays in US domestic flights during 2024 and to construct predictive models that estimate the likelihood of delay. The motivation extends beyond descriptive analytics; accurate predictions can support airline efficiency and improve passenger experiences.
 
@@ -68,6 +68,14 @@ The raw dataset comprises approximately 7,079,081 flight records with 35 columns
     \item \textbf{Labels}: Binary delay indicators were derived for supervised learning, where a flight is considered ``delayed'' if it arrives more than 15 minutes past its scheduled time.
 \end{itemize}
 
+\begin{equation}
+y = 
+\begin{cases}
+1, & \text{if } \texttt{arr\_delay} > 15 \\
+0, & \text{otherwise}
+\end{cases}
+\end{equation}
+
 \subsection{Data Quality and Preprocessing}
 Initial inspection revealed issues common in large-scale operational data, such as missing values for cancelled flights and inconsistencies in time formats. Our preprocessing pipeline included:
 \begin{enumerate}
@@ -82,6 +90,8 @@ Our project methodology followed a structured data science lifecycle: Explorator
 \subsection{Exploratory Data Analysis (EDA)}
 We conducted extensive EDA to understand the underlying distributions of the data. This involved generating statistical summaries of delay variation across hours of the day, days of the week, and seasonal trends. We specifically analyzed carrier performance to identify the most and least reliable airlines.
 
+Figure~\ref{fig:delay_hour} shows a clear increase in delays throughout the day, with afternoon and evening flights experiencing the largest slowdowns.
+
 \begin{figure}[htbp]
 \centering
 \includegraphics[width=\columnwidth]{src/plots/main/delay_by_hour.png}
@@ -93,19 +103,50 @@ We conducted extensive EDA to understand the underlying distributions of the dat
 To improve the robustness of our predictive models, we employed an \textbf{Isolation Forest} algorithm. This unsupervised learning technique isolates anomalies by randomly selecting a feature and then randomly selecting a split value between the maximum and minimum values of the selected feature.
 \begin{itemize}
     \item \textbf{Input}: Scaled features including \texttt{dep\_delay}, \texttt{air\_time}, and \texttt{distance}.
-    \item \textbf{Outcome}: The model identified records with extreme deviation from nominal operations, such as data entry errors or extreme weather events irrelevant to standard modeling.
+    \item \textbf{Outcome}: The model identified records with extreme deviation from normal operations, such as data entry errors or extreme weather events irrelevant to standard modeling.
 \end{itemize}
 
 \subsection{Predictive Modeling (XGBoost)}
 We utilized \textbf{XGBoost (Extreme Gradient Boosting)} for the classification task of predicting flight delays. XGBoost was selected for its efficiency and ability to handle non-linear relationships and interactions between features.
 \begin{itemize}
     \item \textbf{Baseline Model}: Trained on standard flight metadata.
-    \item \textbf{No-Leakage Model}: A strict temporal split was enforced to prevent data leakage (using future information to predict the past).
+    \item \textbf{No-Leakage Model}: A strict time-based split was enforced to prevent data leakage (using future information to predict the past).
     \item \textbf{Evaluation}: Models were evaluated using ROC-AUC, Precision, Recall, and F1-score.
 \end{itemize}
 
 \subsection{Time-Series Forecasting (Rolling/Lag Models)}
-Recognizing the temporal dependency of delays, we implemented a ``Rolling Stone'' prediction model. This approach aggregates delays on a daily basis and uses rolling averages (e.g., 3-day and 7-day lag) and standard deviations (\texttt{std\_delay}) as features to predict the average delay for subsequent days.
+Recognizing the time-based nature of delays, we implemented a ``Rolling Stone'' prediction model. This approach aggregates delays on a daily basis and uses rolling averages (e.g., 3-day and 7-day lag) and standard deviations (\texttt{std\_delay}) as features to predict the average delay for subsequent days.
+
+Let $D_t$ denote the mean arrival delay on day $t$. Rolling features are defined as:
+
+\begin{align}
+\text{3-day average:} \quad & \bar{D}_{t}^{(3)} = \frac{1}{3} \sum_{i=1}^{3} D_{t-i} \\
+\text{7-day average:} \quad & \bar{D}_{t}^{(7)} = \frac{1}{7} \sum_{i=1}^{7} D_{t-i}
+\end{align}
+
+The regression model then estimates:
+\begin{equation}
+\hat{D}_t = f(\sigma_{t-1}, \bar{D}_{t}^{(3)}, \bar{D}_{t}^{(7)}, N_t, c_t, d_t)
+\end{equation}
+
+where $\sigma_{t-1}$ is the historical delay standard deviation, $N_t$ is daily flight volume, and $c_t$, $d_t$ represent calendar effects.
+
+\subsection{Data Leakage and Model Refinement}
+
+During development, an early XGBoost model (\texttt{inflated\_xgboost.py}) achieved an unusually high ROC-AUC of 0.938. Upon further inspection, this performance was determined to be the result of \textbf{data leakage}. Specifically, the model included post-departure features such as \texttt{late\_aircraft\_delay} and \texttt{nas\_delay}, which directly encode information that would not be available at prediction time.
+
+While these variables are informative for retrospective analysis, their inclusion violates the fundamental constraint of predictive modeling: only information available \textit{before departure} may be used. As a result, this model was deemed invalid for real-world deployment.
+
+To address this issue, a refined ``No-Leakage'' XGBoost model was constructed using only strict pre-departure features:
+\begin{itemize}
+    \item Scheduled departure hour
+    \item Month and day of week
+    \item Distance bucket
+    \item Weekend and peak-summer indicators
+    \item Origin, destination, and carrier
+\end{itemize}
+
+Additionally, class imbalance was corrected using \texttt{scale\_pos\_weight}. This refined model achieved a more realistic ROC-AUC of approximately 0.69. Although numerically lower, this performance accurately reflects the inherent uncertainty of predicting individual flight delays without real-time weather or operational data. This refinement step was critical in ensuring scientific validity and preventing misleading model conclusions.
 
 \section{Results}
 
@@ -131,11 +172,25 @@ The Isolation Forest model successfully detected \textbf{104,479 anomalies}. The
 Removing these outliers ensured that our supervised models were trained on representative operational data.
 
 \subsection{Classification Performance (XGBoost)}
-The classification task of predicting individual flight delays proved challenging due to the high variance and stochastic nature of individual flight operations.
+The classification task of predicting individual flight delays proved challenging due to the high variance and random nature of individual flight operations.
 \begin{itemize}
     \item \textbf{Baseline XGBoost ROC-AUC}: 0.7039
     \item \textbf{No-Leakage XGBoost ROC-AUC}: 0.6923
 \end{itemize}
+
+\begin{table}[htbp]
+\caption{Comparison of XGBoost Models With and Without Data Leakage}
+\centering
+\begin{tabular}{|l|c|c|}
+\hline
+\textbf{Model} & \textbf{ROC-AUC} & \textbf{Validity} \\
+\hline
+Inflated XGBoost (With Leakage) & 0.938 & Invalid \\
+No-Leakage XGBoost (Clean) & 0.692 & Valid \\
+\hline
+\end{tabular}
+\label{tab:xgb_comparison}
+\end{table}
 
 Detailed classification metrics for the No-Leakage model:
 \begin{itemize}
@@ -144,8 +199,12 @@ Detailed classification metrics for the No-Leakage model:
 \end{itemize}
 While the model captures 62\% of delayed flights (Recall), the low precision (31\%) indicates a high False Positive Rate, suggesting that while the model learns signal, individual delays are heavily influenced by unobserved variables (e.g., real-time weather, maintenance).
 
+As shown in Figure~\ref{fig:importance}, the standard deviation of previous delays is the strongest predictor in the daily forecasting model.
+
 \subsection{Daily Aggregate Prediction}
-The daily delay prediction model yielded significantly stronger results, validating the presence of systematic temporal trends.
+The daily delay prediction model yielded significantly stronger results, validating the presence of clear time-based trends.
+
+The model’s ability to follow real delay trends is illustrated in Figure~\ref{fig:forecast}, which shows predicted versus actual daily average delays.
 \begin{itemize}
     \item \textbf{R-squared ($R^2$)}: 0.786
     \item \textbf{Mean Absolute Error (MAE)}: 2.67 minutes
@@ -170,15 +229,62 @@ The most influential feature was \texttt{std\_delay} (Standard Deviation of Dela
 \end{figure}
 
 \section{Conclusion and Discussion}
-This study demonstrates the efficacy of machine learning in analyzing aviation data. We successfully processed a massive dataset of 7 million flights to benchmark carrier performance and detect operational anomalies.
+This study demonstrates the effectiveness of machine learning in analyzing aviation data. We successfully processed a massive dataset of 7 million flights to benchmark carrier performance and detect operational anomalies.
 
-Our predictive modeling results suggest a dichotomy in predictability:
+A key lesson from this study was the critical importance of preventing data leakage. An early high-performing model ended up being rejected after identifying that post-flight delay variables had been inadvertently included. The corrective redesign of this feature space led to a lower but more useful analysis.
+
+Our predictive modeling results suggest a clear difference in predictability:
 \begin{enumerate}
-    \item \textbf{Individual Flight Level}: Predicting specific flight delays is difficult (AUC $\approx$ 0.69) using only schedule and carrier data. The stochastic nature of mechanical issues and local weather creates a high ``noise'' floor.
+    \item \textbf{Individual Flight Level}: Predicting specific flight delays is difficult (AUC $\approx$ 0.69) using only schedule and carrier data. The random nature of mechanical issues and local weather creates a high ``noise'' floor.
     \item \textbf{System Level}: Aggregated daily delays are highly predictable ($R^2 \approx$ 0.79). The strong performance of rolling lag features implies that delays are systemic and persistent; a bad day tends to have cascading effects that are measurable in the statistical variance of the network.
 \end{enumerate}
 
 \textbf{Next Steps}: Future work should focus on integrating real-time weather APIs and incoming aircraft tracking to improve individual flight prediction. Additionally, analyzing airport-specific congestion metrics could further refine the models.
+
+\appendix
+\section*{Appendix A: Individual Contributions}
+
+Each team member contributed to specific components of the project as outlined below:
+
+\subsection*{Justin Zomer}
+Justin was responsible for the development and evaluation of the XGBoost classification models. This included:
+\begin{itemize}
+    \item Implementing the initial high-performing \texttt{inflated\_xgboost} model.
+    \item Identifying and diagnosing data leakage caused by post-flight features.
+    \item Designing and training the final \texttt{no\_leakage\_xgboost} model using only valid pre-departure features.
+    \item Conducting classification evaluation using ROC-AUC, precision, recall, and F1-score.
+\end{itemize}
+
+\subsection*{Augusts Zilakovs}
+Augusts developed the time-series forecasting models used for daily delay prediction. His contributions included:
+\begin{itemize}
+    \item Implementing the lag-based daily delay prediction model.
+    \item Developing the ``Rolling Stone'' rolling-average forecasting model.
+    \item Generating multi-day delay forecasts.
+    \item Evaluating regression performance using MAE, $R^2$, and ROC-AUC after converting predictions to classification outputs.
+\end{itemize}
+
+\subsection*{Pratik Narendra Gupta}
+Pratik led the data preprocessing and cleaning pipeline. His responsibilities included:
+\begin{itemize}
+    \item Loading and optimizing the 7-million-row dataset for memory-efficient processing.
+    \item Creating feature engineering functions such as departure hour extraction and delay labeling.
+    \item Handling missing values, invalid records, and data type optimization.
+    \item Building reusable preprocessing utilities used across all models.
+\end{itemize}
+
+\subsection*{Luke Blommesteyn}
+Luke was responsible for exploratory data analysis, airline performance analysis, and anomaly detection. His work included:
+\begin{itemize}
+    \item Performing airline reliability analysis and ranking carriers by on-time performance.
+    \item Conducting route, distance, and traffic-based flight analysis.
+    \item Implementing the Isolation Forest anomaly detection model.
+    \item Analyzing root causes of flight delays by airline and by month.
+\end{itemize}
+
+\section*{Appendix B: Use of Generative AI Tools}
+
+Generative AI tools were used in this project for repetitive tasks such as assisting with document formatting and generating boilerplate code. All data analysis, algorithm implementation, and interpretation of results were performed manually. Experimental work and conclusions presented in this report were done directly by team members.
 
 \begin{thebibliography}{00}
 
